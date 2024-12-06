@@ -1,0 +1,93 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+struct Anime {
+    string name, genre, status;
+    float rating;
+    int rank;  
+};
+
+void create_anime(vector<Anime>& list, const string& name, const string& genre, const string& status, float rating = 0.0) {
+    list.push_back({name, genre, status, rating});
+    cout << "Anime '" << name << "' added successfully!\n";
+}
+
+void display_animes(const vector<Anime>& list) {
+    if (list.empty()) cout << "No anime found!\n";
+    else for (size_t i = 0; i < list.size(); ++i) {
+        cout << i + 1 << ".\n   Name  : " << list[i].name << "\n   Genre : " << list[i].genre 
+             << "\n   Status: " << list[i].status;
+        if (list[i].status == "Watched")
+            cout << "\n   Rating: " << list[i].rating << "\n   Rank  : " << list[i].rank;
+        cout << "\n\n";
+    }
+}
+
+void update_anime(vector<Anime>& list, const string& old_name, const string& name, const string& genre, const string& status, float rating = 0.0) {
+    for (auto& anime : list)
+        if (anime.name == old_name) {
+            anime = {name, genre, status, rating};
+            cout << "Anime '" << old_name << "' updated successfully!\n";
+            return;
+        }
+    cout << "Anime '" << old_name << "' not found!\n";
+}
+
+void delete_anime(vector<Anime>& list, const string& name) {
+    auto it = remove_if(list.begin(), list.end(), [&](const Anime& anime) { return anime.name == name; });
+    if (it != list.end()) list.erase(it, list.end()), cout << "Anime '" << name << "' deleted successfully!\n";
+    else cout << "Anime '" << name << "' not found!\n";
+}
+
+void display_watch_later(const vector<Anime>& list) {
+    for (const auto& anime : list)
+        if (anime.status == "Watch Later") 
+            cout << "Name  : " << anime.name << "\n   Genre : " << anime.genre << "\n\n";
+}
+
+void assign_rank(vector<Anime>& list) {
+    sort(list.begin(), list.end(), [](const Anime& a, const Anime& b) { return a.rating > b.rating; });
+    for (int rank = 1, i = 0; i < list.size(); ++i)
+        if (list[i].status == "Watched") list[i].rank = rank++;
+}
+
+int main() {
+    vector<Anime> list;
+    int choice;
+    string name, genre, status, old_name;
+    float rating;
+
+    do {
+        cout << "1. Add a new anime\n2. Display all animes\n3. Update an anime\n4. Delete an anime\n5. Display Watch Later list\n6. Exit\nEnter your choice: ";
+        cin >> choice; cin.ignore();
+        if (choice == 1) {
+            cout << "Enter anime name: "; getline(cin, name);
+            cout << "Enter anime genre: "; getline(cin, genre);
+            cout << "Enter status (Watched / Watch Later): "; getline(cin, status);
+            if (status == "Watched") {
+                do cout << "Enter rating (1.0 - 10.0): "; while (cin >> rating && (rating < 1.0 || rating > 10.0));
+                cin.ignore(); create_anime(list, name, genre, status, rating); assign_rank(list);
+            } else create_anime(list, name, genre, status);
+        } else if (choice == 2) display_animes(list);
+        else if (choice == 3) {
+            cout << "Enter the name of the anime to update: "; getline(cin, old_name);
+            cout << "Enter new name: "; getline(cin, name);
+            cout << "Enter new genre: "; getline(cin, genre);
+            cout << "Enter new status (Watched / Watch Later): "; getline(cin, status);
+            if (status == "Watched") {
+                do cout << "Enter new rating (1.0 - 10.0): "; while (cin >> rating && (rating < 1.0 || rating > 10.0));
+                cin.ignore(); update_anime(list, old_name, name, genre, status, rating); assign_rank(list);
+            } else update_anime(list, old_name, name, genre, status);
+        } else if (choice == 4) {
+            cout << "Enter the name of the anime to delete: "; getline(cin, name);
+            delete_anime(list, name); assign_rank(list);
+        } else if (choice == 5) display_watch_later(list);
+        else if (choice != 6) cout << "Invalid choice, try again.\n";
+    } while (choice != 6);
+
+    return 0;
+}
